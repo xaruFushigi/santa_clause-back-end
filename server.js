@@ -122,7 +122,6 @@ const setCSRFToken = (req, res, next) => {
 
   // Get the CSRF token stored on the server
   req.serverCSRFToken = req.session.csrfToken;
-
   // Call the next middleware or route handler
   next();
 };

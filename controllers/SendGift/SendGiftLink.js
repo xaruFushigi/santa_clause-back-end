@@ -5,8 +5,7 @@ const SendGiftLink = async (req, res, fetch, nodemailer) => {
 
   // email service configuration
   const transporter = nodemailer.createTransport({
-    // Specify your email service configuration (SMTP settings, etc.)
-    // Example configuration for Gmail:
+    // Specifying email service configuration (SMTP settings, etc.)
     service: process.env.EMAIL_SERVER,
     auth: {
       user: process.env.EMAIL_ADDRESS_SENDER,
@@ -40,46 +39,41 @@ const SendGiftLink = async (req, res, fetch, nodemailer) => {
           "https://raw.githubusercontent.com/alj-devops/santa-data/master/userProfiles.json"
         );
         const dataUsersInformation = await responseUsersInformation.json();
-        if (responseUsersInformation.ok) {
+        if (responseUsersInformation.ok && responseRegisteredUser.ok) {
           const getUserInformation = dataUsersInformation.some((element) => {
             const birthdateComponents = element.birthdate.split("/");
             const year = parseInt(birthdateComponents[0]);
             const day = parseInt(birthdateComponents[1]);
             const month = parseInt(birthdateComponents[2]) - 1;
-
-            const birthdate = new Date(year, month, day);
-
+            const birthdate = new Date(year, day, month);
             return (
               element.userUid === req.body.uid &&
               currentDate.getFullYear() - birthdate.getFullYear() <= 10
             );
           });
-          pendingRequests.push({
-            method: req.method,
-            url: req.url,
-          });
-          // send mail to santa-clause
-          const mailOptions = {
-            from: EMAIL_ADDRESS_SENDER, // replace with your email address
-            to: EMAIL_ADDRESS_RECEIVER, // replace with Santa Claus's email address
-            subject: "Gift Letter",
-            text: `Happy Holidays! ${req.body.giftMessage}`,
-          };
-
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.log("Error sending email:", error);
-            } else {
-              console.log("Email sent:", info.response);
-            }
-          });
-
-          return res.status(200).json(getUserInformation);
+          if (getUserInformation) {
+            // send mail to santa-clause
+            const mailOptions = {
+              from: process.env.EMAIL_ADDRESS_SENDER, // replace with your email address
+              to: process.env.EMAIL_ADDRESS_RECEIVER, // replace with Santa Claus's email address
+              subject: "Gift Letter",
+              text: `Happy Holidays! ${req.body.giftMessage} \n information about child: 
+                   Address: \n ${dataUsersInformation.address} \n 
+                   Birthdate: ${dataUsersInformation.birthdate}`,
+            };
+            transporter.sendMail(mailOptions, (error, info) => {
+              if (error) {
+                console.log("Error sending email:", error);
+              } else {
+                console.log("Email sent:", info.response);
+              }
+            });
+            return res.status(200).json(getUserInformation);
+          } else {
+            return res.status(500).json(getUserInformation);
+          }
         }
         // -- END OF Users Information Database --//
-
-        // // returns to front-end status 200 and result of comparison
-        // return res.status(200).send(isUserRegistered);
       }
     } catch (error) {
       return res.status(500).send({ message: "something went wrong" });
