@@ -21,7 +21,10 @@ const SignInLink = async (req, res, fetch) => {
           );
         });
         // returns to front-end status 200 and result of comparison
-        return res.status(200).send(isUserRegistered);
+        if (isUserRegistered) {
+          req.session.authenticated = true;
+          res.status(200).send(req.session.authenticated);
+        }
       } else {
         return res.status(500).send({ message: "something went wrong" });
       }

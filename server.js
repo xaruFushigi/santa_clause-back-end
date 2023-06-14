@@ -129,11 +129,13 @@ const setCSRFToken = (req, res, next) => {
 const RootLink = require("./controllers/Root/RootLink");
 const SignInLink = require("./controllers/SignIn/SignInLink");
 const SendGiftLink = require("./controllers/SendGift/SendGiftLink");
+const ProtectedLink = require("./controllers/SignIn/ProtectedLink");
+const LogOutLink = require("./controllers/Logout/LogOutLink");
 //------------------------------END OF ROUTES from controllers folder------------------------//
 
 //--------------Routes--------------//
 app.get("/csrf-token", (req, res) => {
-  const csrfToken = req.csrfToken(); // Generate the CSRF token
+  const csrfToken = req.csrfToken(); // Generates the CSRF token
   req.session.csrfToken = csrfToken; // token in the session
   res.json({ csrfToken: csrfToken });
 });
@@ -145,6 +147,12 @@ app.post("/signin", csrfProtection, setCSRFToken, (req, res) => {
 });
 app.post("/sendGift", csrfProtection, setCSRFToken, (req, res) => {
   SendGiftLink(req, res, fetch, nodemailer);
+});
+app.get("/protected", (req, res) => {
+  ProtectedLink(req, res);
+});
+app.post("/logout", (req, res) => {
+  LogOutLink(req, res);
 });
 //--------------END OF Routes--------------//
 
